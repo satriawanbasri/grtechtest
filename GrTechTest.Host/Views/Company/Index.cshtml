@@ -1,0 +1,254 @@
+﻿<article ng-controller='ngCtr' data-ng-init='init()'>
+    <label class='page-title page-title-margin-bottom'>Company</label>
+    <div id='company-grid'></div>
+    <br />
+    <br />
+    <div class="pull-right">
+        <button ng-click='add()' class='button-brown'>Add New Company</button>
+    </div>
+    <div id='company-window' style='display:none'>
+        <form id='company-form'>
+            <div class='grid-container' style='margin-top:0px'>
+                <div class='grid-item'>
+                    <label class='item-name'>Name</label>
+                </div>
+                <div class='grid-item'>
+                    <input ng-model='company.Name' class='input-text' type='text' style='width: 70%' name='Name' required data-required-msg='Required!' />
+                </div>
+
+                <div class='grid-item'>
+                    <label class='item-name'>Email</label>
+                </div>
+                <div class='grid-item'>
+                    <input ng-model='company.Email' name='Email' class='input-text' type='text' style='width: 70%' data-required-msg='Invalid email!' />
+                </div>
+
+                <div class='grid-item'>
+                    <label class='item-name'>Website</label>
+                </div>
+                <div class='grid-item'>
+                    <input ng-model='company.Website' class='input-text' type='text' style='width: 70%' />
+                </div>
+
+                <div class='grid-item'>
+                    <label class='item-name'>Logo</label>
+                </div>
+                <div class='grid-item'>
+                    <button ng-click='browse()' class='button-brown'>Browse</button> &nbsp; &nbsp;
+                    <img id='FileLogoImg' height='150' />
+                </div>
+            </div>
+        </form>
+        <br />
+        <div class='pull-right'>
+            <button ng-click='cancel()' class='button-silver'>Cancel</button>
+            <button ng-click='save()' class='button-brown'>Save</button>
+        </div>
+    </div>
+</article>
+<script>
+    ngApp.controller('ngCtr', function ($scope) {
+        let companies = null;
+        var loadingContainer = $("#loading");
+
+        $scope.init = () => {
+            $('input[name="Email"]').attr('pattern', '^[a-zA-Z0-9_.+-]+@@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$');
+
+            getCompanies();
+        };
+
+        const getCompanies = () => {
+            fetch('@Url.Action("GetCompanies", "Company")', null,
+                response => {
+                    companies = response.Data;
+                    showCompanyGrid();
+                });
+        };
+
+        const showCompanyGrid = () => {
+            if ($('#company-grid').data('kendoGrid'))
+                $('#company-grid').data('kendoGrid').destroy();
+            $('#company-grid').kendoGrid({
+                dataSource: {
+                    data: companies,
+                    pageSize: 10
+                },
+                toolbar: ["excel"],
+                excel: {
+                    fileName: "Company.xlsx",
+                    allPages: true
+                },
+                sortable: true,
+                filterable: true,
+                resizable: true,
+                pageable: { pageSizes: true },
+                dataBound: function () {
+                    for (let i = 0; i < this.columns.length; i++)
+                        this.autoFitColumn(i);
+                    const rows = this.items();
+                    $(rows).each(function () {
+                        const index = $(this).index() + 1 + ($('#company-grid').data('kendoGrid').dataSource.pageSize() * ($('#company-grid').data('kendoGrid').dataSource.page() - 1));
+                        const rowLabel = $(this).find('.row-number');
+                        $(rowLabel).html(index);
+                    });
+                },
+                columns: [
+                    {
+                        title: 'No',
+                        template: "<span class='row-number'></span>",
+                        attributes: { style: 'text-align: right' },
+                    },
+                    { field: 'Id', hidden: true },
+                    { field: 'Name', title: 'Name' },
+                    { field: 'Email', title: 'Email' },
+                    { field: 'Website', title: 'Website', template: '<a href="#=Website#" target="_blank">#=Website#</a>' },
+                    {
+                        title: 'Actions',
+                        headerAttributes: { style: 'text-align: center' },
+                        command: [
+                            {
+                                name: 'edit-item',
+                                template: "<a class='k-button k-grid-edit-item' style='height:14px; line-height:normal'><span class='fa fa-edit'></span></a>",
+                                click: edit,
+                            },
+                            {
+                                name: 'del-item',
+                                template: "<a class='k-button k-grid-del-item' style='height:14px; line-height:normal'><span class='fa fa-trash'></span></a>",
+                                click: remove,
+                            },
+                        ],
+                    },
+                ]
+            });
+        };
+
+        function edit(e) {
+            const row = this.dataItem($(e.currentTarget).closest('tr'));
+            fetch('@Url.Action("GetCompanyById", "Company")', { id: row.Id },
+                response => {
+                    $scope.company = response.Data;
+                    $scope.$apply();
+                    if ($scope.company.LogoFileId)
+                        getLogoFileById();
+                    showCompanyWindow();
+                });
+        };
+
+        function remove(e) {
+            const row = this.dataItem($(e.currentTarget).closest('tr'));
+            showMessageBox('Are you sure want to delete this Company?', 'Confirm').then(function (result) {
+                if (result)
+                    fetch('@Url.Action("DeleteCompany", "Company")', { id: row.Id },
+                        response => {
+                            showMessageBox(response.Message, response.Status);
+                            getCompanies();
+                        });
+            });
+        };
+
+        $scope.add = () => {
+            $('#company-form').kendoValidator().data('kendoValidator').hideMessages();
+            $scope.company = null;
+            $scope.company = {};
+            $('#FileLogoImg').attr('src', '');
+            $scope.$applyAsync();
+            showCompanyWindow();
+        };
+
+        const showCompanyWindow = () => {
+            $('#company-window').kendoWindow({
+                title: 'Add New Company',
+                width: '900px',
+                height: '444px',
+                padding: '100px',
+                visible: false,
+                draggable: true,
+                pinned: false,
+                modal: true,
+                actions: ['Pin', 'Minimize', 'Maximize', 'Close']
+            }).data('kendoWindow').center().open();
+        };
+
+        $scope.cancel = () => {
+            $('#company-window').data('kendoWindow').close();
+        };
+
+        $scope.save = () => {
+            $('#company-form').kendoValidator().data('kendoValidator').hideMessages();
+            if (!$('#company-form').kendoValidator({
+                rules: {
+                    required: tag => {
+                        if (tag.attr('name') && ($('[name=' + tag.attr('name') + ']').val() == null || $('[name=' + tag.attr('name') + ']').val().trim() == ''
+                            || $('[name=' + tag.attr('name') + ']').val() == '? undefined:undefined ?' || $('[name=' + tag.attr('name') + ']').val() == '? object:null ?'))
+                            return false;
+                        return true;
+                    }
+                }
+            }).data('kendoValidator').validate())
+                return;
+
+            showMessageBox('Are you sure want to save this Company?', 'Confirm').then(function (result) {
+                if (result)
+                    fetch('@Url.Action("SaveCompany", "Company")', { company: $scope.company },
+                        response => {
+                            showMessageBox(response.Message, response.Status);
+                            getCompanies();
+                            $scope.cancel();
+                        });
+            });
+        };
+
+        $scope.browse = () => {
+            var id = newGuid();
+            var input = document.createElement("input");
+            input.setAttribute("id", id);
+            input.setAttribute("type", "file");
+            input.setAttribute("name", "fileUploadTemplate");
+            var div = document.createElement("div");
+            div.appendChild(input);
+            div.style.display = "none";
+            document.body.appendChild(div);
+            $("#" + id).kendoUpload({
+                async: {
+                    saveUrl: '@Url.Action("Upload", "Company")',
+                },
+                multiple: false,
+                upload: onUpload,
+                success: onUploadSuccess,
+                error: onUploadError,
+                showFileList: false,
+                localization: { headerStatusUploaded: "" },
+            }).click();
+        };
+
+        const onUpload = () => {
+            if (loadingContainer)
+                kendo.ui.progress($('#loading'), true);
+        };
+
+        const onUploadSuccess = e => {
+            var response = e.response;
+            if (response.Success) {
+                $('#FileLogoImg').attr('src', response.Data.LogoFileBase64);
+                $scope.company.LogoFileId = response.Data.LogoFileId;
+            }
+            else
+                showMessageBox(response.Message, response.Status);
+            if (loadingContainer)
+                kendo.ui.progress($('#loading'), false);
+        };
+
+        const onUploadError = () => {
+            showMessageBox('Failed to upload file!', 'Error');
+            if (loadingContainer)
+                kendo.ui.progress($('#loading'), false);
+        };
+
+        const getLogoFileById = () => {
+            fetch('@Url.Action("GetLogoFileById", "Company")', { logoFileId: $scope.company.LogoFileId },
+                response => {
+                    $('#FileLogoImg').attr('src', response.Data.LogoFileBase64);
+                });
+        };
+    });
+</script>

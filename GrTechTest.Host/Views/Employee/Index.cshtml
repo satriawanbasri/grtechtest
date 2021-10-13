@@ -1,0 +1,217 @@
+﻿<article ng-controller='ngCtr' data-ng-init='init()'>
+    <label class='page-title page-title-margin-bottom'>Employee</label>
+    <div id='employee-grid'></div>
+    <br />
+    <br />
+    <div class="pull-right">
+        <button ng-click='add()' class='button-brown'>Add New Employee</button>
+    </div>
+    <div id='employee-window' style='display:none'>
+        <form id='employee-form'>
+            <div class='grid-container' style='margin-top:0px'>
+                <div class='grid-item'>
+                    <label class='item-name'>First Name</label>
+                </div>
+                <div class='grid-item'>
+                    <input ng-model='employee.FirstName' class='input-text' type='text' style='width: 70%' name='FirstName' required data-required-msg='Required!' />
+                </div>
+
+                <div class='grid-item'>
+                    <label class='item-name'>Last Name</label>
+                </div>
+                <div class='grid-item'>
+                    <input ng-model='employee.LastName' class='input-text' type='text' style='width: 70%' name='LastName' required data-required-msg='Required!' />
+                </div>
+
+                <div class='grid-item'>
+                    <label class='item-name'>Company</label>
+                </div>
+                <div class='grid-item'>
+                    <select ng-model='employee.CompanyId' class='combobox' style='width:468px'>
+                        <option ng-repeat='company in companies' value='{{company.Id}}'>{{company.Name}}</option>
+                    </select>
+                </div>
+
+                <div class='grid-item'>
+                    <label class='item-name'>Email</label>
+                </div>
+                <div class='grid-item'>
+                    <input ng-model='employee.Email' name='Email' class='input-text' type='text' style='width: 70%' data-required-msg='Invalid email!' />
+                </div>
+
+                <div class='grid-item'>
+                    <label class='item-name'>Phone</label>
+                </div>
+                <div class='grid-item'>
+                    <input ng-model='employee.Phone' name='Phone' pattern='[^A-Za-z]*$' class='input-text' type='text' style='width: 70%' data-required-msg='Alphabet disallowed!' />
+                </div>
+            </div>
+        </form>
+        <br />
+        <div class='pull-right'>
+            <button ng-click='cancel()' class='button-silver'>Cancel</button>
+            <button ng-click='save()' class='button-brown'>Save</button>
+        </div>
+    </div>
+</article>
+<script>
+    ngApp.controller('ngCtr', function ($scope) {
+        let employees = null;
+
+        $scope.init = () => {
+            $('input[name="Email"]').attr('pattern', '^[a-zA-Z0-9_.+-]+@@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$');
+
+            getEmployees();
+            getCompanies();
+        };
+
+        const getEmployees = () => {
+            fetch('@Url.Action("GetEmployees", "Employee")', null,
+                response => {
+                    employees = response.Data;
+                    showEmployeeGrid();
+                });
+        };
+
+        const getCompanies = () => {
+            fetch('@Url.Action("GetCompanies", "Employee")', null,
+                response => {
+                    $scope.companies = response.Data;
+                    $scope.$apply();
+                });
+        };
+
+        const showEmployeeGrid = () => {
+            if ($('#employee-grid').data('kendoGrid'))
+                $('#employee-grid').data('kendoGrid').destroy();
+            $('#employee-grid').kendoGrid({
+                dataSource: {
+                    data: employees,
+                    pageSize: 10
+                },
+                toolbar: ["excel"],
+                excel: {
+                    fileName: "Employee.xlsx",
+                    allPages: true
+                },
+                sortable: true,
+                filterable: true,
+                resizable: true,
+                pageable: { pageSizes: true },
+                dataBound: function () {
+                    for (let i = 0; i < this.columns.length; i++)
+                        this.autoFitColumn(i);
+                    const rows = this.items();
+                    $(rows).each(function () {
+                        const index = $(this).index() + 1 + ($('#employee-grid').data('kendoGrid').dataSource.pageSize() * ($('#employee-grid').data('kendoGrid').dataSource.page() - 1));
+                        const rowLabel = $(this).find('.row-number');
+                        $(rowLabel).html(index);
+                    });
+                },
+                columns: [
+                    {
+                        title: 'No',
+                        template: "<span class='row-number'></span>",
+                        attributes: { style: 'text-align: right' },
+                    },
+                    { field: 'Id', hidden: true },
+                    { field: 'FirstName', title: 'First Name' },
+                    { field: 'LastName', title: 'Last Name' },
+                    { field: 'FullName', title: 'Full Name' },
+                    { field: 'Company.Name', title: 'Company' },
+                    { field: 'Email', title: 'Email' },
+                    { field: 'Phone', title: 'Phone' },
+                    {
+                        title: 'Actions',
+                        headerAttributes: { style: 'text-align: center' },
+                        command: [
+                            {
+                                name: 'edit-item',
+                                template: "<a class='k-button k-grid-edit-item' style='height:14px; line-height:normal'><span class='fa fa-edit'></span></a>",
+                                click: edit,
+                            },
+                            {
+                                name: 'del-item',
+                                template: "<a class='k-button k-grid-del-item' style='height:14px; line-height:normal'><span class='fa fa-trash'></span></a>",
+                                click: remove,
+                            },
+                        ],
+                    },
+                ]
+            });
+        };
+
+        function edit(e) {
+            const row = this.dataItem($(e.currentTarget).closest('tr'));
+            fetch('@Url.Action("GetEmployeeById", "Employee")', { id: row.Id },
+                response => {
+                    $scope.employee = response.Data;
+                    $scope.$apply();
+                    showEmployeeWindow();
+                });
+        };
+
+        function remove(e) {
+            const row = this.dataItem($(e.currentTarget).closest('tr'));
+            showMessageBox('Are you sure want to delete this Employee?', 'Confirm').then(function (result) {
+                if (result)
+                    fetch('@Url.Action("DeleteEmployee", "Employee")', { id: row.Id },
+                        response => {
+                            showMessageBox(response.Message, response.Status);
+                            getEmployees();
+                        });
+            });
+        };
+
+        $scope.add = () => {
+            $('#employee-form').kendoValidator().data('kendoValidator').hideMessages();
+            $scope.employee = null;
+            $scope.$applyAsync();
+            showEmployeeWindow();
+        };
+
+        const showEmployeeWindow = () => {
+            $('#employee-window').kendoWindow({
+                title: 'Add New Employee',
+                width: '900px',
+                height: '385px',
+                padding: '100px',
+                visible: false,
+                draggable: true,
+                pinned: false,
+                modal: true,
+                actions: ['Pin', 'Minimize', 'Maximize', 'Close']
+            }).data('kendoWindow').center().open();
+        };
+
+        $scope.cancel = () => {
+            $('#employee-window').data('kendoWindow').close();
+        };
+
+        $scope.save = () => {
+            $('#employee-form').kendoValidator().data('kendoValidator').hideMessages();
+            if (!$('#employee-form').kendoValidator({
+                rules: {
+                    required: tag => {
+                        if (tag.attr('name') && ($('[name=' + tag.attr('name') + ']').val() == null || $('[name=' + tag.attr('name') + ']').val().trim() == ''
+                            || $('[name=' + tag.attr('name') + ']').val() == '? undefined:undefined ?' || $('[name=' + tag.attr('name') + ']').val() == '? object:null ?'))
+                            return false;
+                        return true;
+                    }
+                }
+            }).data('kendoValidator').validate())
+                return;
+
+            showMessageBox('Are you sure want to save this Employee?', 'Confirm').then(function (result) {
+                if (result)
+                    fetch('@Url.Action("SaveEmployee", "Employee")', { employee: $scope.employee },
+                        response => {
+                            showMessageBox(response.Message, response.Status);
+                            getEmployees();
+                            $scope.cancel();
+                        });
+            });
+        };
+
+    });
+</script>

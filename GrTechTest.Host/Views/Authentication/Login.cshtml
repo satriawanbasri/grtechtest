@@ -1,0 +1,62 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_LayoutNone.cshtml";
+}
+
+<style>
+    .container {
+        ... position: relative;
+    }
+
+    .child {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin: -240px 0 0 -190px;
+        border: 1px solid silver;
+        padding: 30px;
+        border-radius: 10px;
+    }
+</style>
+<article ng-controller='ngCtr' data-ng-init='init()'>
+    <div class="container">
+        <div class="child">
+            <img src='~/Content/images/GR Tech Logo.png' style='height:80px; margin-left:66px' /><br />
+            <h1 style="text-align:center; font-weight:bold">Test</h1><br /><br />
+            <label>Username</label><br />
+            <input ng-model='login.Username' class='input-text size-medium' type='text' />
+            <br /><br />
+            <label>Password</label><br />
+            <input ng-model='login.Password' class='input-text size-medium' type='password' />
+            <br /><br />
+            <h4 style='text-align:center; color:red'>{{ errorMessage }}</h4>
+            <br /><br />
+            <button ng-click='submit()' class='button-brown' style="margin-left:70px">Login</button>
+        </div>
+    </div>
+</article>
+<script>
+    ngApp.controller('ngCtr', function ($scope) {
+        $scope.init = () => {
+
+        };
+
+        $scope.submit = () => {
+            $scope.errorMessage = '';
+            $scope.$applyAsync();
+            fetch('@Url.Action("Login_", "Authentication")', { login: $scope.login },
+                response => {
+                    if (response.Status == 'Success') {
+                        if ('@ViewBag.ReturnUrl' == null || '@ViewBag.ReturnUrl' == undefined || '@ViewBag.ReturnUrl' == '')
+                            window.location.href = '@Url.Action("", "Home")';
+                        else
+                            window.location.href = '@ViewBag.ReturnUrl';
+                    }
+                    else {
+                        $scope.errorMessage = response.Message;
+                        $scope.$apply();
+                    }
+                });
+        };
+    });
+</script>

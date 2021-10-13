@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html>
+<html lang='en' ng-app='app'>
+<head>
+    <meta charset='utf-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0' />
+    <title>KIOSK</title>
+    @Styles.Render("~/Content/css")
+    <link href='~/Content/font-awesome/css/font-awesome.min.css' rel='stylesheet' />
+    <link href='~/Content/kendo/styles/kendo.common.min.css' rel='stylesheet' />
+    <link href='~/Content/kendo/styles/kendo.default.min.css' rel='stylesheet' />
+    <link href='~/Content/app.css' rel='stylesheet' />
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/jquery")
+    <script src='~/Content/kendo/js/angular.min.js'></script>
+    <script src='~/Content/kendo/js/jszip.min.js'></script>
+    <script src='~/Content/kendo/js/kendo.all.min.js'></script>
+    <script src='~/Scripts/app.js'></script>
+    <link rel='shortcut icon' href='#' />
+</head>
+<body>
+    <div class='container'>
+        <div style='margin-top:30px; margin-bottom:30px; margin-right:-55px'>
+            <img src='~/Content/images/GR Tech Logo.png' style='height:60px'/>
+            <div class='pull-right'>
+                <div class='col-sm-12 row'>
+                    <div class='col-sm-3'>
+                        <img src='~/Content/images/avatar5.png' style='height:50px; margin-top:4px' />
+                    </div>
+                    <div class='col-sm-8'>
+                        <label style='margin-bottom:5px'>@ViewBag.Username</label>
+                        <p style='font-weight:normal; font-size:12px; color:#5a5a5a; margin-bottom:-2px'>Programmer</p>
+                        <p style='font-weight:normal; font-size:12px; color:#5a5a5a; width:200px'>Last login: 2021/10/12 20:20:20</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <ul class='navbar-nav'>
+            <li><a class='fa fa-home home-icon menu-a' href='~/'></a></li>
+            @if (User.IsInRole("ADMIN"))
+            {
+                <li class='dropdown'>
+                    <a class='dropdown-toggle menu-a' data-toggle='dropdown'>Company <span class='caret'></span></a>
+                    <ul class='dropdown-menu'>
+                        <li><a class='menu-a' href='~/Company'>Company List</a></li>
+                        <li><a class='menu-a' href='~/TempDeleteCompany'>Temp Delete Company</a></li>
+                    </ul>
+                </li>
+                <li class='dropdown'>
+                    <a class='dropdown-toggle menu-a' data-toggle='dropdown'>Employee<span class='caret'></span></a>
+                    <ul class='dropdown-menu'>
+                        <li><a class='menu-a' href='~/Employee'>Employee List</a></li>
+                        <li><a class='menu-a' href='~/TempDeleteEmployee'>Temp Delete Employee</a></li>
+                    </ul>
+                </li>
+            }
+            <li><a class='menu-a' href='~/Authentication/Anonymous'>Anonymous</a></li>
+            <li><a class='menu-a' href='~/Authentication/Logout'>Logout</a></li>
+        </ul>
+        @RenderBody()
+        <div style='margin-top:250px; margin-bottom:30px'>
+            <label style='font-weight:normal; font-size:12px'>Copyright &#64; 2021 MyCompany, Ltd. All rights reserved.</label>
+            <label style='font-weight:normal; font-size: 12px' class='pull-right'>A member of ITserve, a global technology group</label>
+        </div>
+    </div>
+    <div id='loading'></div>
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+</body>
+</html>

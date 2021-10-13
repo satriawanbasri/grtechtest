@@ -1,0 +1,103 @@
+﻿<article ng-controller='ngCtr' data-ng-init='init()'>
+    <label class='page-title page-title-margin-bottom'>Temporary Delete Company</label>
+    <div id='company-grid'></div>
+</article>
+<script>
+    ngApp.controller('ngCtr', function ($scope) {
+        let companies = null;
+
+        $scope.init = () => {
+            getDeletedCompanies();
+        };
+
+        const getDeletedCompanies = () => {
+            fetch('@Url.Action("GetDeletedCompanies", "TempDeleteCompany")', null,
+                response => {
+                    companies = response.Data;
+                    showCompanyGrid();
+                });
+        };
+
+        const showCompanyGrid = () => {
+            if ($('#company-grid').data('kendoGrid'))
+                $('#company-grid').data('kendoGrid').destroy();
+            $('#company-grid').kendoGrid({
+                dataSource: {
+                    data: companies,
+                    pageSize: 10
+                },
+                toolbar: ["excel"],
+                excel: {
+                    fileName: "Company.xlsx",
+                    allPages: true
+                },
+                sortable: true,
+                filterable: true,
+                resizable: true,
+                pageable: { pageSizes: true },
+                dataBound: function () {
+                    for (let i = 0; i < this.columns.length; i++)
+                        this.autoFitColumn(i);
+                    const rows = this.items();
+                    $(rows).each(function () {
+                        const index = $(this).index() + 1 + ($('#company-grid').data('kendoGrid').dataSource.pageSize() * ($('#company-grid').data('kendoGrid').dataSource.page() - 1));
+                        const rowLabel = $(this).find('.row-number');
+                        $(rowLabel).html(index);
+                    });
+                },
+                columns: [
+                    {
+                        title: 'No',
+                        template: "<span class='row-number'></span>",
+                        attributes: { style: 'text-align: right' },
+                    },
+                    { field: 'Id', hidden: true },
+                    { field: 'Name', title: 'Name' },
+                    { field: 'Email', title: 'Email' },
+                    { field: 'Website', title: 'Website', template: '<a href="#=Website#" target="_blank">#=Website#</a>' },
+                    {
+                        title: 'Actions',
+                        headerAttributes: { style: 'text-align: center' },
+                        command: [
+                            {
+                                name: 'restore',
+                                template: "<a class='k-button k-grid-restore' style='height:14px; line-height:normal'><span class='fa fa-refresh'></span></a>",
+                                click: restore,
+                            },
+                            {
+                                name: 'del-permanent',
+                                template: "<a class='k-button k-grid-del-permanent' style='height:14px; line-height:normal'><span class='fa fa-trash'></span></a>",
+                                click: deletePermanent,
+                            },
+                        ],
+                    },
+                ]
+            });
+        };
+
+        function restore(e) {
+            const row = this.dataItem($(e.currentTarget).closest('tr'));
+            showMessageBox('Are you sure want to restore this Company?', 'Confirm').then(function (result) {
+                if (result)
+                    fetch('@Url.Action("RestoreDeletedCompany", "TempDeleteCompany")', { id: row.Id },
+                        response => {
+                            showMessageBox(response.Message, response.Status);
+                            getDeletedCompanies();
+                        });
+            });
+        };
+
+        function deletePermanent(e) {
+            const row = this.dataItem($(e.currentTarget).closest('tr'));
+            showMessageBox('Are you sure want to permanently delete this Company?', 'Confirm').then(function (result) {
+                if (result)
+                    fetch('@Url.Action("PermanentDeleteCompany", "TempDeleteCompany")', { id: row.Id },
+                        response => {
+                            showMessageBox(response.Message, response.Status);
+                            getDeletedCompanies();
+                        });
+            });
+        };
+
+    });
+</script>

@@ -1,0 +1,4 @@
+-backend technologies: Microsoft SQL Server database, .NET freamework, ASP MVC
+-frontend technologies: Telerik Kendo, AngularJS
+-make sure to setup database connectionstring in Web.config file
+-it used automatic database migration with some data seeders
