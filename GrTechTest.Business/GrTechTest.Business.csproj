@@ -76,6 +76,7 @@
     <Compile Include="Services\CompanyService.cs" />
     <Compile Include="Services\UserRoleService.cs" />
     <Compile Include="Utils\Converter.cs" />
+    <Compile Include="Utils\EmployeeFilter.cs" />
     <Compile Include="Utils\ResponseStatus.cs" />
     <Compile Include="Utils\ResponseMessage.cs" />
     <Compile Include="GrTechTestDbContext.cs" />

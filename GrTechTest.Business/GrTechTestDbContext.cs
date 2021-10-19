@@ -21,10 +21,6 @@ namespace GrTechTest.Business
         protected override void OnModelCreating(DbModelBuilder dbModelBuilder)
         {
             dbModelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
-
-            //dbModelBuilder.Entity<RequestItem>().HasOptional(c => c.OfficeSupply);
-            //dbModelBuilder.Entity<RequestItem>().HasOptional(c => c.Request);
-            //dbModelBuilder.Entity<Delivery>().HasOptional(c => c.RequestItem);
         }
     }
 }

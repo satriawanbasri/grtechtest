@@ -168,5 +168,17 @@ namespace GrTechTest.Business.Services
                 throw exception;
             }
         }
+
+        public List<Employee> GetFilteredEmployees(EmployeeFilter employeeFilter)
+        {
+            try
+            {
+                return _employeeRepository.GetFilteredEmployees(employeeFilter);
+            }
+            catch (Exception exception)
+            {
+                throw exception;
+            }
+        }
     }
 }

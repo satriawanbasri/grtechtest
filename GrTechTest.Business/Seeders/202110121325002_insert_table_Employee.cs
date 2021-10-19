@@ -13,8 +13,8 @@ namespace GrTechTest.Business.Seeders
             employee = new Employee()
             {
                 Id = "b7ce3c71-327c-404d-a849-25f53f760962",
-                CreatedOn = new DateTime(2021, 10, 10),
-                UpdatedOn = new DateTime(2021, 10, 10),
+                CreatedOn = new DateTime(2020, 10, 10),
+                UpdatedOn = new DateTime(2020, 10, 10),
                 CreatedBy = "Seeder",
                 UpdatedBy = "Seeder",
                 IsDeleted = false,
@@ -47,8 +47,8 @@ namespace GrTechTest.Business.Seeders
             employee = new Employee()
             {
                 Id = "3372c399-9736-495b-b8f8-0324cf246fcd",
-                CreatedOn = new DateTime(2021, 10, 10),
-                UpdatedOn = new DateTime(2021, 10, 10),
+                CreatedOn = new DateTime(2020, 10, 10),
+                UpdatedOn = new DateTime(2020, 10, 10),
                 CreatedBy = "Seeder",
                 UpdatedBy = "Seeder",
                 IsDeleted = false,
@@ -82,8 +82,8 @@ namespace GrTechTest.Business.Seeders
             employee = new Employee()
             {
                 Id = "67493ceb-e2e3-4085-82f5-9080df802155",
-                CreatedOn = new DateTime(2021, 10, 10),
-                UpdatedOn = new DateTime(2021, 10, 10),
+                CreatedOn = new DateTime(2020, 10, 10),
+                UpdatedOn = new DateTime(2020, 10, 10),
                 CreatedBy = "Seeder",
                 UpdatedBy = "Seeder",
                 IsDeleted = false,

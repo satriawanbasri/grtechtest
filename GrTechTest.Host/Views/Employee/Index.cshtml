@@ -1,5 +1,55 @@
 ﻿<article ng-controller='ngCtr' data-ng-init='init()'>
     <label class='page-title page-title-margin-bottom'>Employee</label>
+
+    <div class='grid-container' style='margin-top:0px'>
+        <div class='grid-item'>
+            <label class='item-name'>Date Added From</label>
+        </div>
+        <div class='grid-item'>
+            <input id='DateAddedFrom' onkeydown='return false' />
+        </div>
+
+        <div class='grid-item'>
+            <label class='item-name'>Date Added To</label>
+        </div>
+        <div class='grid-item'>
+            <input id='DateAddedTo' onkeydown='return false' />
+        </div>
+
+        <div class='grid-item'>
+            <label class='item-name'>Email</label>
+        </div>
+        <div class='grid-item'>
+            <input ng-model='employeeFilter.Email' name='Email' class='input-text' type='text' />
+        </div>
+
+        <div class='grid-item'>
+            <label class='item-name'>First Name</label>
+        </div>
+        <div class='grid-item'>
+            <input ng-model='employeeFilter.FirstName' class='input-text' type='text' />
+        </div>
+
+        <div class='grid-item'>
+            <label class='item-name'>Last Name</label>
+        </div>
+        <div class='grid-item'>
+            <input ng-model='employeeFilter.LastName' class='input-text' type='text' />
+        </div>
+
+        <div class='grid-item'>
+            <label class='item-name'>Company</label>
+        </div>
+        <div class='grid-item'>
+            <input ng-model='employeeFilter.CompanyName' class='input-text' type='text' />
+        </div>
+    </div>
+    <br />
+    <div>
+        <button ng-click='filter()' class='button-brown'>Filter</button>
+        <button ng-click='reset()' class='button-silver'>Reset</button>
+    </div>
+    <br />
     <div id='employee-grid'></div>
     <br />
     <br />
@@ -59,7 +109,11 @@
         let employees = null;
 
         $scope.init = () => {
+            $('#DateAddedFrom').kendoDatePicker({ format: 'dd-MMM-yyyy' });
+            $('#DateAddedTo').kendoDatePicker({ format: 'dd-MMM-yyyy' });
             $('input[name="Email"]').attr('pattern', '^[a-zA-Z0-9_.+-]+@@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$');
+
+            $scope.employeeFilter = {};
 
             getEmployees();
             getCompanies();
@@ -211,6 +265,24 @@
                             $scope.cancel();
                         });
             });
+        };
+
+        $scope.filter = () => {
+            $scope.employeeFilter.DateAddedFrom = kendo.toString($('#DateAddedFrom').data('kendoDatePicker').value(), 'yyyy-MM-dd');
+            $scope.employeeFilter.DateAddedTo = kendo.toString($('#DateAddedTo').data('kendoDatePicker').value(), 'yyyy-MM-dd');
+            fetch('@Url.Action("GetFilteredEmployees", "Employee")', { employeeFilter: $scope.employeeFilter },
+                response => {
+                    employees = response.Data;
+                    showEmployeeGrid();
+                });
+        };
+
+        $scope.reset = () => {
+            $("#DateAddedFrom").data("kendoDatePicker").value(null);
+            $("#DateAddedTo").data("kendoDatePicker").value(null);
+            $scope.employeeFilter = {};
+            $scope.$applyAsync();
+            getEmployees();
         };
 
     });

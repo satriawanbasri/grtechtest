@@ -61,5 +61,16 @@ namespace GrTechTest.Host.Controllers
             var companies = _companyService.GetCompanies();
             return Json(new ResponseMessage() { Success = true, Status = ResponseStatus.Success.ToString(), Data = companies }, JsonRequestBehavior.AllowGet);
         }
+
+        public JsonResult GetFilteredEmployees(EmployeeFilter employeeFilter)
+        {
+            var employees = _employeeService.GetFilteredEmployees(employeeFilter);
+            return Json(new ResponseMessage()
+            {
+                Success = true,
+                Status = ResponseStatus.Success.ToString(),
+                Data = JsonConvert.DeserializeObject<List<Employee>>(JsonConvert.SerializeObject(employees, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }))
+            }, JsonRequestBehavior.AllowGet);
+        }
     }
 }
